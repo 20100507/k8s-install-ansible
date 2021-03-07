@@ -1,0 +1,20 @@
+- name: 拷贝kube-scheduler
+  copy: src=kube-scheduler dest='{{kubernetes_home}}/scheduler/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+  
+- name: 拷贝系统自定义scheduler服务文件到Master节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: kube-scheduler.service
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 刷新系统服务列表,使得scheduler服务生效
+  shell: systemctl daemon-reload
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 设置kube-scheduler服务开机启动
+  shell: systemctl enable kube-scheduler
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- include: scheduler_service.yml

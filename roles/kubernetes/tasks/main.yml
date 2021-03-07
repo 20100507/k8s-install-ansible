@@ -1,0 +1,75 @@
+- include: init_directory.yml
+  tags:
+    - init_directory
+
+- include: gen_certs.yml
+  tags:
+    - gen_certs
+
+- include: install_etcd.yml
+  tags:
+    - install_etcd
+
+- include: etcd_service.yml
+  tags:
+    - start_etcd
+
+- include: install_apiserver.yml
+  tags:
+    - install_apiserver
+
+- include: apiserver_service.yml
+  tags:
+    - start_apiserver
+
+- include: install_controller_manager.yml
+  tags:
+    - install_controller_manager
+
+- include: controller_manager_service.yml
+  tags:
+    - start_controller_manager
+
+- include: install_scheduler.yml
+  tags:
+    - install_scheduler
+
+- include: scheduler_service.yml
+  tags:
+    - start_scheduler
+
+- include: install_kubeproxy.yml
+  tags:
+    - install_kubeproxy
+
+- include: kubeproxy_service.yml
+  tags:
+    - start_kubeproxy
+
+- include: install_calico.yml
+  tags:
+    - install_calico
+
+- include: calico_service.yml
+  tags:
+    - start_calico
+
+- include: install_kubelet.yml
+  tags:
+    - install_kubelet
+
+- include: kubelet_service.yml
+  tags:
+    - start_kubelet
+
+- include: install_dashboard.yml
+  tags:
+    - install_dashboard
+
+- include: install_coredns.yml
+  tags:
+    - install_coredns
+
+- include: install_traefik.yml
+  tags:
+    - install_traefik

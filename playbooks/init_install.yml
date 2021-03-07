@@ -1,0 +1,4 @@
+- hosts: init_install
+ 
+  roles:
+     - init_install

@@ -1,0 +1,34 @@
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+
+[Service]
+Type=notify
+WorkingDirectory={{kubernetes_home}}/etcd/
+ExecStart={{kubernetes_home}}/etcd/bin/etcd \
+  --name={{etcd_ip}} \
+  --listen-client-urls=https://{{etcd_ip}}:2379,http://127.0.0.1:2379 \
+  --advertise-client-urls=https://{{etcd_ip}}:2379,http://127.0.0.1:2379 \
+  --data-dir={{etcd_data_dir}} \
+  --quota-backend-bytes=8000000000 \
+  --listen-peer-urls=https://{{etcd_ip}}:2380 \
+  --initial-advertise-peer-urls=https://{{etcd_ip}}:2380 \
+  --initial-cluster={% for host in groups['Master'] %}{{ hostvars[host]['inventory_hostname'] }}=https://{{ hostvars[host]['inventory_hostname'] }}:2380{% if not loop.last %},{% endif %}{% endfor %} \
+  --cert-file={{kubernetes_home}}/etcd/certs/etcd-peer.pem \
+  --key-file={{kubernetes_home}}/etcd/certs/etcd-peer-key.pem \
+  --client-cert-auth \
+  --trusted-ca-file={{kubernetes_home}}/etcd/certs/ca.pem \
+  --peer-ca-file={{kubernetes_home}}/etcd/certs/ca.pem \
+  --peer-cert-file={{kubernetes_home}}/etcd/certs/etcd-peer.pem \
+  --peer-key-file={{kubernetes_home}}/etcd/certs/etcd-peer-key.pem \
+  --peer-client-cert-auth \
+  --peer-trusted-ca-file {{kubernetes_home}}/etcd/certs/ca.pem 
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

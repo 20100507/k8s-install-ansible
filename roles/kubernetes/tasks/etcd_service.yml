@@ -1,0 +1,3 @@
+- name: 启动etcd服务
+  shell: systemctl start etcd
+  when: groups['Master']|join(',')|search(inventory_hostname)

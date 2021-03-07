@@ -1,0 +1,3 @@
+- name: 启动kube-scheduler服务
+  shell: systemctl start kube-scheduler
+  when: groups['Master']|join(',')|search(inventory_hostname)

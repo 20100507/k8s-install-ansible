@@ -1,0 +1,19 @@
+[Unit]
+Description=Kubernetes Kube-Proxy Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+[Service]
+WorkingDirectory={{kubernetes_home}}/kubeproxy
+ExecStart={{kubernetes_home}}/kubeproxy/bin/kube-proxy \
+--cluster-cidr {{cluster_cidr}}/16 \
+--hostname-override {{kubeproxy_hostname}} \
+--proxy-mode=ipvs \
+--ipvs-scheduler=nq \
+--log-dir {{kubernetes_home}}/kubeproxy/logs \
+--kubeconfig {{kubernetes_home}}/kubeproxy/conf/kube-proxy.kubeconfig
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

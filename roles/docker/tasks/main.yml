@@ -1,0 +1,7 @@
+- include: install_docker.yaml
+  tags:
+    - install_docker
+
+- include: docker_service.yml
+  tags:
+    - docker_service

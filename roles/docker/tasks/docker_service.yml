@@ -1,0 +1,5 @@
+- name: 开机自启动&启动docker服务
+  systemd:
+    name: docker
+    enabled: yes
+    state: started

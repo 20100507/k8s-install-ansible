@@ -1,0 +1,34 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory={{kubernetes_home}}/kubelet
+ExecStart={{kubernetes_home}}/kubelet/bin/kubelet \
+        --anonymous-auth=false \
+        --cgroup-driver=systemd \
+        --cluster-dns={{cluster_dns}} \
+        --cluster-domain=cluster.local \
+        --runtime-cgroups=/systemd/system.slice \
+        --kubelet-cgroups=/systemd/system.slice \
+        --fail-swap-on=false \
+        --client-ca-file={{kubernetes_home}}/kubelet/certs/ca.pem \
+        --tls-cert-file={{kubernetes_home}}/kubelet/certs/kubelet.pem \
+        --tls-private-key-file={{kubernetes_home}}/kubelet/certs/kubelet-key.pem \
+        --hostname-override={{kubelet_hostname}} \
+        --image-gc-high-threshold=20 \
+        --image-gc-low-threshold=10 \
+        --kubeconfig={{kubernetes_home}}/kubelet/conf/kubelet.kubeconfig \
+        --log-dir={{kubernetes_home}}/kubelet/logs \
+        --pod-infra-container-image={{image_name}} \
+        --network-plugin=cni \
+        --root-dir={{kubelet_data_dir}} \
+        --v=2
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,34 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+[Service]
+ExecStart={{kubernetes_home}}/apiserver/bin/kube-apiserver \
+  --apiserver-count=2 \
+  --audit-log-path={{kubernetes_home}}/apiserver/logs \
+  --audit-policy-file={{kubernetes_home}}/apiserver/conf/audit.yaml \
+  --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,NodeRestriction \
+  --authorization-mode=RBAC \
+  --client-ca-file={{kubernetes_home}}/apiserver/certs/ca.pem \
+  --requestheader-client-ca-file={{kubernetes_home}}/apiserver/certs/ca.pem \
+  --etcd-cafile={{kubernetes_home}}/apiserver/certs/ca.pem \
+  --etcd-certfile={{kubernetes_home}}/apiserver/certs/client.pem \
+  --etcd-keyfile={{kubernetes_home}}/apiserver/certs/client-key.pem \
+  --target-ram-mb={{apiserver_heap_memory}} \
+  --kubelet-client-certificate={{kubernetes_home}}/apiserver/certs/client.pem \
+  --kubelet-client-key={{kubernetes_home}}/apiserver/certs/client-key.pem \
+  --log-dir=={{kubernetes_home}}/apiserver/logs \
+  --tls-cert-file={{kubernetes_home}}/apiserver/certs/apiserver.pem \
+  --tls-private-key-file={{kubernetes_home}}/apiserver/certs/apiserver-key.pem \
+  --service-cluster-ip-range={{cluster_ip}}/16 \
+  --service-account-key-file={{kubernetes_home}}/apiserver/certs/ca-key.pem \
+  --service-node-port-range=3000-29999 \
+  --etcd-servers={% for host in groups['Master'] %}https://{{ hostvars[host]['inventory_hostname'] }}:2379{% if not loop.last %},{% endif %}{% endfor %} \
+  --allow-privileged=true \
+  --v=2
+Restart=on-failure
+RestartSec=5
+Type=notify
+LimitNOFILE=65536
+[Install]
+WantedBy=multi-user.target

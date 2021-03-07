@@ -1,0 +1,77 @@
+- name: 拷贝traefik2必要依赖的docker镜像
+  copy: src=traefik-v2.1.2.tgz dest='/tmp/' owner=root group=root
+
+- name: 导入traefik2到本地镜像库
+  shell: docker load < /tmp/traefik-v2.1.2.tgz
+
+- name: 拷贝dashboard.yaml文件
+  template:
+   dest: "/tmp"
+   src: dashboard.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 创建traefik2的yaml部署文件目录
+  file: path='/tmp/traefik2' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝traefik-rbac.yaml文件
+  template:
+   dest: "/tmp/traefik2"
+   src: traefik-rbac.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝traefik-crd.yaml文件
+  template:
+   dest: "/tmp/traefik2"
+   src: traefik-crd.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 拷贝traefik-config.yaml文件
+  template:
+   dest: "/tmp/traefik2"
+   src: traefik-config.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 拷贝traefik-deploy.yaml文件
+  template:
+   dest: "/tmp/traefik2"
+   src: traefik-deploy.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝traefik-dashboard-route.yaml文件
+  template:
+   dest: "/tmp/traefik2"
+   src: traefik-dashboard-route.yaml
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: traefik2.1部署完毕,但是需要您手动执行node打标签命令`kubectl label nodes 主机名 IngressProxy=true`,配置Windows或者Mac hosts文件, nodeIp traefik.duxiaoman-int.com 即可访问traefik UI界面
+  shell: sleep 4
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+ 
+- name: 应用traefik yaml文件
+  shell: kubectl apply -f traefik-rbac.yaml chdir=/tmp/traefik2
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 应用traefik yaml文件
+  shell: kubectl apply -f traefik-crd.yaml chdir=/tmp/traefik2
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 应用traefik yaml文件
+  shell: kubectl apply -f traefik-config.yaml chdir=/tmp/traefik2
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 应用traefik yaml文件
+  shell: kubectl apply -f traefik-deploy.yaml chdir=/tmp/traefik2
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 等待5秒,防止报错
+  shell: sleep 5
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 应用traefik yaml文件
+  shell: kubectl apply -f traefik-dashboard-route.yaml chdir=/tmp/traefik2
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 恭喜您Kubernetes部署完毕,已经预装 Dashboard,coredns,Traefik
+  shell: sleep 1
+  when: groups['Cert']|join(',')|search(inventory_hostname)

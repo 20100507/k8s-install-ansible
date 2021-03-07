@@ -1,0 +1,36 @@
+- name: 拷贝etcd
+  copy: src=etcd dest='{{kubernetes_home}}/etcd/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝etcdctl
+  copy: src=etcdctl dest='{{kubernetes_home}}/etcd/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的ca.pem证书文件到Master节点
+  copy: src=/tmp/ca.pem dest='{{kubernetes_home}}/etcd/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的etcd证书文件etcd-peer-key.pem到Master节点
+  copy: src=/tmp/etcd-peer-key.pem dest='{{kubernetes_home}}/etcd/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的etcd证书文件etcd-peer.pem到Master节点
+  copy: src=/tmp/etcd-peer.pem dest='{{kubernetes_home}}/etcd/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝系统自定义etcd服务文件到Master节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: etcd.service
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 刷新系统服务列表,使得etcd服务生效
+  shell: systemctl daemon-reload
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 设置etcd服务开机启动
+  shell: systemctl enable etcd
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- include: etcd_service.yml

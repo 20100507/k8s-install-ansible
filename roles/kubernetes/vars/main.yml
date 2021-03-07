@@ -1,0 +1,8 @@
+#k8s核心安装目录
+kubernetes_home: '{{ install_base }}/kubernetes'
+#etcd数据目录
+etcd_data_dir: '/var/lib/etcd'
+#kubelet数据目录
+kubelet_data_dir: '/var/lib/kubelet'
+
+

@@ -1,0 +1,28 @@
+- name: 拷贝kube-controller-manager
+  copy: src=kube-controller-manager dest='{{kubernetes_home}}/controller-manager/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的ca.pem证书文件到Master节点
+  copy: src=/tmp/ca.pem dest='{{kubernetes_home}}/controller-manager/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的ca-key.pem证书文件到Master节点
+  copy: src=/tmp/ca-key.pem dest='{{kubernetes_home}}/controller-manager/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+  
+- name: 拷贝系统自定义controller-manager服务文件到Master节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: controller-manager.service
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 刷新系统服务列表,使得controller-manager服务生效
+  shell: systemctl daemon-reload
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 设置controller-manager服务开机启动
+  shell: systemctl enable controller-manager
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- include: controller_manager_service.yml

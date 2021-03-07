@@ -1,0 +1,54 @@
+- name: 拷贝docker运行文件docker
+  copy: src=docker dest='/usr/bin'
+
+- name: change docker mode
+  file: mode=755 state=file path=/usr/bin/docker
+
+- name: 拷贝docker运行文件dockerd
+  copy: src=dockerd dest='/usr/bin'
+
+- name: change docker mode
+  file: mode=755 state=file path=/usr/bin/dockerd
+
+- name: 拷贝docker运行文件docker-init
+  copy: src=docker-init dest='/usr/bin'
+
+- name: change docker-init mode
+  file: mode=755 state=file path=/usr/bin/docker-init
+ 
+- name: 拷贝docker运行文件docker-proxy
+  copy: src=docker-proxy dest='/usr/bin'
+
+- name: change docker-proxy mode
+  file: mode=755 state=file path=/usr/bin/docker-proxy
+
+- name: 创建docker配置文件目录
+  file: path='/etc/docker' state=directory owner=root group=root
+
+- name: 创建docker数据存储目录
+  file: path={{docker_data_directory}} state=directory owner=root group=root
+
+- name: 添加daemon.json文件
+  template:
+   dest: "/etc/docker"
+   mode: 0755
+   src: daemon.json
+
+- name: 拷贝container-io rpm包到服务器
+  copy: src=containerd.io-1.2.6-3.3.el7.x86_64.rpm dest='/tmp'
+
+- name: 移除旧的runc包
+  command: yum erase -y runc
+
+- name: 安装rpm包
+  command: rpm -ivh /tmp/containerd.io-1.2.6-3.3.el7.x86_64.rpm --nodeps
+
+- name: 将docker注册为系统服务
+  template:
+   dest: "/usr/lib/systemd/system"
+   mode: 0755
+   src: docker.service
+
+- name: 刷新systemd
+  systemd:
+    daemon_reload: yes

@@ -1,0 +1,27 @@
+{
+  "CN": "apiserver",
+  "hosts": [
+     {% for host in groups['Kubernetes'] %}
+     "{{ hostvars[host]['inventory_hostname'] }}",
+     {% endfor %}
+     "127.0.0.1",
+     "{{apiserver_cid}}",
+     "kubernetes.default",
+     "kubernetes.default.svc",
+     "kubernetes.default.svc.cluster",
+     "kubernetes.default.svc.cluster.local"
+   ],
+   "key": {
+       "algo": "rsa",
+       "size": 2048
+   },
+   "names": [
+       {
+          "C": "CN",
+          "ST": "Beijing",
+          "L": "Beijing",
+          "O": "DUXIAOMAN",
+          "OU": "MMR"
+       }
+   ]
+}

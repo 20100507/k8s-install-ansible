@@ -1,0 +1,41 @@
+- name: 拷贝dashboard必要依赖的docker镜像
+  copy: src=dashboard2.0.tgz dest='/tmp/' owner=root group=root
+
+- name: 导入dashboard2.0到本地镜像库
+  shell: docker load < /tmp/dashboard2.0.tgz
+
+
+- name: 拷贝ui-metrics-scraper必要依赖的docker镜像
+  copy: src=ui-metrics-scraper-v1.tgz dest='/tmp/' owner=root group=root
+
+- name: 导入ui-metrics-scraper到本地镜像库
+  shell: docker load < /tmp/ui-metrics-scraper-v1.tgz
+
+- name: 拷贝dashboard.yaml文件
+  template:
+   dest: "/tmp"
+   src: dashboard.yaml
+
+- name: 拷贝dashboard-create-admin.yaml文件
+  template:
+   dest: "/tmp"
+   src: dashboard-create-admin.yaml
+
+- name: 应用dashboard.yaml
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl apply -f /tmp/dashboard.yaml'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 应用dashboard-create-admin.yaml,dashboard部署完毕,请使用火狐浏览器打开dashboard地址为https://nodeIp:8889
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl apply -f /tmp/dashboard-create-admin.yaml'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 获取管理员token,写入到本地Master节点tmp目录下
+  shell: kubectl describe secret $(kubectl get secret -A |grep "admin-user-token" |awk -F ' ' '{print $2}') -n kubernetes-dashboard |grep "token:" |awk -F ' ' '{print $2}' > /tmp/dashboard-token
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程dashboard-token到本地部署机器的tmp目录下,打开dashboard登陆页面后,请选择Token方式登录,密钥在当前主控机的/tmp/dashboard-token文件中
+  fetch:
+   src: "/tmp/dashboard-token"
+   dest: /tmp/dashboard-token
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)

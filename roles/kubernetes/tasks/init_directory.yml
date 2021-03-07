@@ -1,0 +1,260 @@
+- name: 创建证书根目录
+  file: path="{{install_base}}/ssl" state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+ 
+- name: 创建基础证书工作目录
+  file: path='{{install_base}}/ssl/certs' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 创建ApiServer证书目录
+  file: path='{{install_base}}/ssl/apiserver' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 创建client证书目录
+  file: path='{{install_base}}/ssl/client' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 创建calico证书目录
+  file: path='{{install_base}}/ssl/calico' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 创建etcd证书目录
+  file: path='{{install_base}}/ssl/etcd' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 创建kubelet证书目录
+  file: path='{{install_base}}/ssl/kubelet' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 创建kubeproxy证书目录
+  file: path='{{install_base}}/ssl/kubeproxy' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+# 证书目录创建完毕
+
+####################################################################################
+### Kubernetes Master安装目录创建开始###
+
+## etcd 安装目录创建开始
+- name: 创建etcd安装目录
+  file: path='{{kubernetes_home}}/etcd' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建etcd安装bin目录
+  file: path='{{kubernetes_home}}/etcd/bin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+- name: 创建etcd安装sbin目录
+  file: path='{{kubernetes_home}}/etcd/sbin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+- name: 创建etcd安装logs目录
+  file: path='{{kubernetes_home}}/etcd/logs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+- name: 创建etcd安装conf目录
+  file: path='{{kubernetes_home}}/etcd/conf' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+- name: 创建etcd安装certs目录
+  file: path='{{kubernetes_home}}/etcd/certs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+## etcd 安装目录创建结束
+
+## ApiServer 安装目录创建开始
+- name: 创建ApiServer安装目录
+  file: path='{{kubernetes_home}}/apiserver' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建ApiServer安装bin目录
+  file: path='{{kubernetes_home}}/apiserver/bin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建ApiServer安装sbin目录
+  file: path='{{kubernetes_home}}/apiserver/sbin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建ApiServer安装logs目录
+  file: path='{{kubernetes_home}}/apiserver/logs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建ApiServer安装conf目录
+  file: path='{{kubernetes_home}}/apiserver/conf' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建ApiServer安装certs目录
+  file: path='{{kubernetes_home}}/apiserver/certs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+## ApiServer 安装目录创建结束
+
+## Controller Manager 安装目录创建开始
+- name: 创建Controller Manager安装目录
+  file: path='{{kubernetes_home}}/controller-manager' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建Controller Manager安装bin目录
+  file: path='{{kubernetes_home}}/controller-manager/bin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建Controller Manager安装sbin目录
+  file: path='{{kubernetes_home}}/controller-manager/sbin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建Controller Manager安装logs目录
+  file: path='{{kubernetes_home}}/controller-manager/logs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建Controller Manager安装conf目录
+  file: path='{{kubernetes_home}}/controller-manager/conf' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建Controller Manager安装certs目录
+  file: path='{{kubernetes_home}}/controller-manager/certs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+
+## Controller Manager 安装目录创建结束
+
+## scheduler 安装目录创建开始
+- name: 创建scheduler安装目录
+  file: path='{{kubernetes_home}}/scheduler' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建scheduler安装bin目录
+  file: path='{{kubernetes_home}}/scheduler/bin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建scheduler安装sbin目录
+  file: path='{{kubernetes_home}}/scheduler/sbin' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建scheduler安装logs目录
+  file: path='{{kubernetes_home}}/scheduler/logs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建scheduler安装conf目录
+  file: path='{{kubernetes_home}}/scheduler/conf' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)  
+  
+- name: 创建scheduler安装certs目录
+  file: path='{{kubernetes_home}}/scheduler/certs' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+## scheduler 安装目录创建结束
+
+### Kubernetes Master安装目录创建结束###
+########################################################################################
+### Kubernetes 网络安装目录创建开始 ###
+
+## calico 安装目录创建开始
+
+- name: 创建calico安装目录
+  file: path='{{kubernetes_home}}/calico' state=directory owner=root group=root
+
+- name: 创建calico安装bin目录
+  file: path='{{kubernetes_home}}/calico/bin' state=directory owner=root group=root
+  
+- name: 创建calico安装sbin目录
+  file: path='{{kubernetes_home}}/calico/sbin' state=directory owner=root group=root
+  
+- name: 创建calico安装logs目录
+  file: path='{{kubernetes_home}}/calico/logs' state=directory owner=root group=root
+  
+- name: 创建calico安装conf目录
+  file: path='{{kubernetes_home}}/calico/conf' state=directory owner=root group=root
+  
+- name: 创建calico安装certs目录
+  file: path='{{kubernetes_home}}/calico/certs' state=directory owner=root group=root
+
+## calico 安装目录创建结束
+
+## CNI 安装目录创建开始
+
+- name: 创建CNI安装目录
+  file: path='{{install_base}}/cni' state=directory owner=root group=root
+
+- name: 创建CNI安装bin目录
+  file: path='{{install_base}}/cni/bin' state=directory owner=root group=root
+  
+- name: 创建CNI配置目录
+  file: path='/etc/cni/net.d' state=directory owner=root group=root
+
+## CNI 安装目录创建结束
+
+### Kubernetes 网络安装目录创建结束 ###
+##############################################
+### Kubernetes 公共安装目录创建开始 ###
+
+## kubelet 安装目录创建开始
+
+- name: 创建kubelet安装目录
+  file: path='{{kubernetes_home}}/kubelet' state=directory owner=root group=root
+
+- name: 创建kubelet安装bin目录
+  file: path='{{kubernetes_home}}/kubelet/bin' state=directory owner=root group=root
+  
+- name: 创建kubelet安装sbin目录
+  file: path='{{kubernetes_home}}/kubelet/sbin' state=directory owner=root group=root
+  
+- name: 创建kubelet安装logs目录
+  file: path='{{kubernetes_home}}/kubelet/logs' state=directory owner=root group=root
+  
+- name: 创建kubelet安装conf目录
+  file: path='{{kubernetes_home}}/kubelet/conf' state=directory owner=root group=root
+  
+- name: 创建kubelet安装certs目录
+  file: path='{{kubernetes_home}}/kubelet/certs' state=directory owner=root group=root
+
+- name: 创建kubelet数据存储目录
+  file: path='{{kubelet_data_dir}}' state=directory owner=root group=root
+
+## kubelet 安装目录创建结束
+
+## kubeproxy 安装目录创建开始
+
+- name: 创建kubeproxy安装目录
+  file: path='{{kubernetes_home}}/kubeproxy' state=directory owner=root group=root
+
+- name: 创建kubeproxy安装bin目录
+  file: path='{{kubernetes_home}}/kubeproxy/bin' state=directory owner=root group=root
+  
+- name: 创建kubeproxy安装sbin目录
+  file: path='{{kubernetes_home}}/kubeproxy/sbin' state=directory owner=root group=root
+  
+- name: 创建kubeproxy安装logs目录
+  file: path='{{kubernetes_home}}/kubeproxy/logs' state=directory owner=root group=root
+  
+- name: 创建kubeproxy安装conf目录
+  file: path='{{kubernetes_home}}/kubeproxy/conf' state=directory owner=root group=root
+  
+- name: 创建kubeproxy安装certs目录
+  file: path='{{kubernetes_home}}/kubeproxy/certs' state=directory owner=root group=root
+
+## kubeproxy 安装目录创建结束
+
+## 创建数据目录开始
+
+- name: 创建etcd数据目录
+  file: path='{{etcd_data_dir}}' state=directory owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+
+- name: 创建kubelet数据目录
+  file: path='{{kubelet_data_dir}}' state=directory owner=root group=root
+
+## 创建kubectl客户端目录
+- name: 创建kubectl客户端目录
+  file: path='{{kubernetes_home}}/kubectl/bin' state=directory owner=root group=root
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+## 拷贝kubectl客户端命令 本不应该出现在初始化目录位置
+- name: 拷贝kubectl
+  copy: src=kubectl dest='{{kubernetes_home}}/kubectl/bin' owner=root group=root mode=755
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+## 拷贝kubectl客户端命令到/usr/bin目录 本不应该出现在初始化目录位置
+- name: 拷贝kubectl到/usr/bin/
+  copy: src=kubectl dest='/usr/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+

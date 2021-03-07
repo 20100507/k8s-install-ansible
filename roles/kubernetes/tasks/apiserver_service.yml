@@ -1,0 +1,3 @@
+- name: 启动apiserver服务
+  shell: systemctl start apiserver
+  when: groups['Master']|join(',')|search(inventory_hostname)

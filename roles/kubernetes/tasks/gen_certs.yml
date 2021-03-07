@@ -1,0 +1,274 @@
+- name: 拷贝生成证书工具cfssl
+  copy: src=cfssl dest='/usr/bin' owner=root group=root mode=755
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 拷贝生成证书工具cfssl-json
+  copy: src=cfssl-json dest='/usr/bin' owner=root group=root mode=755
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加ca-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/certs"
+   mode: 0755
+   src: ca-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 通过申请文件初始化自签发CA证书
+  shell: cfssl gencert -initca ca-csr.json | cfssl-json -bare ca chdir={{install_base}}/ssl/certs
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程ca.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/certs/ca.pem"
+   dest: /tmp/ca.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程ca-key.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/certs/ca-key.pem"
+   dest: /tmp/ca-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+# etcd 服务端证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/etcd"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加etcd-peer-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/etcd"
+   mode: 0755
+   src: etcd-peer-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到etcd生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/etcd
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到etcd生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/etcd
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过etcd申请文件来签发生成etcd证书
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer etcd-peer-csr.json | cfssl-json -bare etcd-peer chdir={{install_base}}/ssl/etcd
+  when: groups['Cert']|join(',')|search(inventory_hostname) 
+
+- name: 拷贝远程etcd-peer.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/etcd/etcd-peer.pem"
+   dest: /tmp/etcd-peer.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程etcd-peer-key.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/etcd/etcd-peer-key.pem"
+   dest: /tmp/etcd-peer-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+# client 证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/client"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加client-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/client"
+   mode: 0755
+   src: client-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到client生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/client
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到client生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/client
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过client申请文件来签发生成client证书
+  shell:  cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client-csr.json | cfssl-json -bare client chdir={{install_base}}/ssl/client
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程client-key.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/client/client-key.pem"
+   dest: /tmp/client-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程client.pem到本地部署机器   
+  fetch:
+   src: "{{install_base}}/ssl/client/client.pem"
+   dest: /tmp/client.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+
+# apiserver 证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/apiserver"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加apiserver-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/apiserver"
+   mode: 0755
+   src: apiserver-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到client生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/apiserver
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到apiserver生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/apiserver
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过apiserver申请文件来签发生成apiserver证书
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server apiserver-csr.json | cfssl-json -bare apiserver chdir={{install_base}}/ssl/apiserver
+  when: groups['Cert']|join(',')|search(inventory_hostname) 
+
+- name: 拷贝远程apiserver-key.pem到本地部署机器    
+  fetch:
+   src: "{{install_base}}/ssl/apiserver/apiserver-key.pem"
+   dest: /tmp/apiserver-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程apiserver.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/apiserver/apiserver.pem"
+   dest: /tmp/apiserver.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+# kubelet 证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/kubelet"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加kubelet-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/kubelet"
+   mode: 0755
+   src: kubelet-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到kubelet生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/kubelet
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到kubelet生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/kubelet
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过kubelet申请文件来签发生成kubelet证书
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server kubelet-csr.json | cfssl-json -bare kubelet chdir={{install_base}}/ssl/kubelet
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程kubelet-key.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/kubelet/kubelet-key.pem"
+   dest: /tmp/kubelet-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程kubelet.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/kubelet/kubelet.pem"
+   dest: /tmp/kubelet.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+# kubeproxy 证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/kubeproxy"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加kube-proxy-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/kubeproxy"
+   mode: 0755
+   src: kube-proxy-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到kubeproxy生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/kubeproxy
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到kubeproxy生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/kubeproxy
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过kubeproxy申请文件来签发生成kubeproxy证书
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client kube-proxy-csr.json | cfssl-json -bare kube-proxy-client chdir={{install_base}}/ssl/kubeproxy
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+# calico 证书
+
+- name: 添加ca-config.json文件
+  template:
+   dest: "{{install_base}}/ssl/calico"
+   mode: 0755
+   src: ca-config.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+  
+- name: 添加calico-csr.json文件
+  template:
+   dest: "{{install_base}}/ssl/calico"
+   mode: 0755
+   src: calico-csr.json
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca.pem到calico生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca.pem {{install_base}}/ssl/calico
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝ca-key.pem到calico生成证书目录
+  command: cp {{install_base}}/ssl/certs/ca-key.pem {{install_base}}/ssl/calico
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 通过calico申请文件来签发生成calico证书
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client calico-csr.json | cfssl-json -bare calico chdir={{install_base}}/ssl/calico
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程calico.pem到本地部署机器
+  fetch:
+   src: "{{install_base}}/ssl/calico/calico.pem"
+   dest: /tmp/calico.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程calico-key.pem到本地部署机器 
+  fetch:
+   src: "{{install_base}}/ssl/calico/calico-key.pem"
+   dest: /tmp/calico-key.pem
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+
+

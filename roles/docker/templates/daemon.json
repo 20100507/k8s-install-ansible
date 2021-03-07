@@ -1,0 +1,9 @@
+{
+  "graph": "{{docker_data_directory}}",
+  "storage-driver": "overlay2",
+  "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"],
+  "insecure-registries": ["{{harbor_address}}"],
+  "bip": "{{docker_bip}}",
+  "exec-opts":["native.cgroupdriver=systemd"],
+  "live-restore":true
+}

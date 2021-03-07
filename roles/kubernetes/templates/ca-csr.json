@@ -1,0 +1,21 @@
+{
+  "CN": "k8s-cluster",
+  "hosts": [
+   ],
+   "key": {
+       "algo": "rsa",
+       "size": 2048
+   },
+   "names": [
+       {
+          "C": "CN",
+          "ST": "Beijing",
+          "L": "Beijing",
+          "O": "DUXIAOMAN",
+          "OU": "MMR"
+       }
+   ],
+   "ca": {
+       "expiry": "200000h"
+   }
+}

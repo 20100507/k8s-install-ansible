@@ -1,0 +1,3 @@
+- name: 启动controller-manager服务
+  shell: systemctl start controller-manager
+  when: groups['Master']|join(',')|search(inventory_hostname)

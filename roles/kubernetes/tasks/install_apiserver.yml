@@ -1,0 +1,52 @@
+- name: 拷贝kube-apiserver
+  copy: src=kube-apiserver dest='{{kubernetes_home}}/apiserver/bin' owner=root group=root mode=755
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的ca.pem证书文件到Master节点
+  copy: src=/tmp/ca.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的client证书文件client.pem到Master节点
+  copy: src=/tmp/client.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的client证书文件client-key.pem到Master节点
+  copy: src=/tmp/client-key.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的apiserver证书文件apiserver.pem到Master节点
+  copy: src=/tmp/apiserver.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝部署机的apiserver证书文件apiserver-key.pem到Master节点
+  copy: src=/tmp/apiserver-key.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+
+- name: 拷贝部署机的apiserver证书文件ca-key.pem到Master节点
+  copy: src=/tmp/ca-key.pem dest='{{kubernetes_home}}/apiserver/certs' owner=root group=root
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝系统apiserver审计audit.yml文件到目标目录
+  template:
+   dest: "{{kubernetes_home}}/apiserver/conf"
+   mode: 0755
+   src: audit.yaml
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 拷贝系统自定义apiserver服务文件到Master节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: apiserver.service
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 刷新系统服务列表,使得apiserver服务生效
+  shell: systemctl daemon-reload
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 设置apiserver服务开机启动
+  shell: systemctl enable apiserver
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- include: apiserver_service.yml

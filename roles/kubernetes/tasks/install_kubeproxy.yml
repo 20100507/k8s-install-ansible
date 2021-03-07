@@ -1,0 +1,51 @@
+- name: 创建kubeproxy的客户端认证配置文件kubeconfig
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-cluster my-k8s --certificate-authority={{install_base}}/ssl/certs/ca.pem --server={{master_ip}} --embed-certs=true --kubeconfig=/tmp/kube-proxy.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 添加kube-proxy认证用户到users列表
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-credentials kube-proxy --client-certificate={{install_base}}/ssl/kubeproxy/kube-proxy-client.pem --client-key={{install_base}}/ssl/kubeproxy/kube-proxy-client-key.pem --embed-certs=true  --kubeconfig=/tmp/kube-proxy.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 创建context集群上下文件，允许kubeproxy用户访问该集群
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-context proxy-context --cluster=my-k8s --user=kube-proxy --kubeconfig=/tmp/kube-proxy.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 切换使用当前上下文为k8s-context
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config use-context proxy-context --kubeconfig=/tmp/kube-proxy.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程kube-proxy.kubeconfig到本地部署机器
+  fetch:
+   src: "/tmp/kube-proxy.kubeconfig"
+   dest: /tmp/kube-proxy.kubeconfig
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝kubeproxy到kubeproxy部署目录
+  copy: src=kube-proxy dest='{{kubernetes_home}}/kubeproxy/bin' owner=root group=root mode=755
+
+- name: 拷贝部署机的kubproxy配置文件到所有的节点
+  copy: src=/tmp/kube-proxy.kubeconfig dest='{{kubernetes_home}}/kubeproxy/conf' owner=root group=root
+
+- name: 拷贝ipvs脚本到所有的节点
+  template:
+   dest: "{{kubernetes_home}}/kubeproxy/sbin"
+   mode: 0755
+   src: start-ipvs-model.sh
+
+- name: 执行ipvs脚本启动ipvs调度模块
+  shell: "{{kubernetes_home}}/kubeproxy/sbin/start-ipvs-model.sh"
+
+- name: 拷贝系统自定义kubelet服务文件到所有节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: kubeproxy.service
+
+- name: 刷新系统服务列表
+  shell: systemctl daemon-reload
+
+- name: 设置kubeproxy服务开机启动
+  shell: systemctl enable kubeproxy
+
+- include: kubeproxy_service.yml

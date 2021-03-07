@@ -1,0 +1,17 @@
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+[Service]
+ExecStart={{kubernetes_home}}/controller-manager/bin/kube-controller-manager \
+  --master=http://127.0.0.1:8080 \
+  --leader-elect true \
+  --log-dir {{kubernetes_home}}/controller-manager/logs \
+  --service-cluster-ip-range={{cluster_ip}}/16 \
+  --cluster-cidr={{cluster_cidr}}/16 \
+  --service-account-private-key-file {{kubernetes_home}}/controller-manager/certs/ca-key.pem \
+  --root-ca-file {{kubernetes_home}}/controller-manager/certs/ca.pem \
+  --v=2
+Restart=on-failure
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

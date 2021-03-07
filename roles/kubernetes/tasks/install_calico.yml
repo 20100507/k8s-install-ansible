@@ -1,0 +1,48 @@
+- name: 拷贝calico必要依赖的docker镜像calico
+  copy: src=calico-v2.6.2.tgz dest='/tmp/' owner=root group=root
+
+- name: 导入calcio2.6.2到本地镜像库
+  shell: docker load < /tmp/calico-v2.6.2.tgz
+
+- name: 拷贝calico文件到所有节点
+  copy: src=calico dest='/opt/cni/bin/' owner=root group=root mode=755
+
+- name: 拷贝calicoctl文件到所有节点
+  copy: src=calicoctl dest='/opt/cni/bin/' owner=root group=root mode=755
+
+- name: 拷贝calicoctl文件到所有节点方便调试查看
+  copy: src=calicoctl dest='/usr/bin' owner=root group=root mode=755
+
+- name: 拷贝calico-ipam文件到所有节点
+  copy: src=calico-ipam dest='/opt/cni/bin/' owner=root group=root mode=755
+  
+- name: 拷贝calico文件到所有节点
+  copy: src=loopback dest='/opt/cni/bin/' owner=root group=root mode=755
+
+- name: 拷贝部署机的ca.pem证书文件到所有节点
+  copy: src=/tmp/ca.pem dest='{{kubernetes_home}}/calico/certs' owner=root group=root
+
+- name: 拷贝部署机的calico-key.pem证书文件到所有节点
+  copy: src=/tmp/calico-key.pem dest='{{kubernetes_home}}/calico/certs' owner=root group=root
+
+- name: 拷贝部署机的calico.pem证书文件到所有节点
+  copy: src=/tmp/calico.pem dest='{{kubernetes_home}}/calico/certs' owner=root group=root
+
+- name: 拷贝cni配置文件到所有节点
+  template:
+   dest: "/etc/cni/net.d"
+   src: 10-calico.conf
+
+- name: 拷贝系统自定义kube-calico.service服务文件到所有节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: kube-calico.service
+
+- name: 刷新系统服务列表,使得calico服务生效
+  shell: systemctl daemon-reload
+
+- name: 设置calico服务开机启动
+  shell: systemctl enable kube-calico
+
+- include: calico_service.yml

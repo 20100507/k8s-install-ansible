@@ -1,0 +1,75 @@
+- name: 创建kubelet的客户端认证配置文件kubeconfig
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-cluster k8s-cluster --certificate-authority={{install_base}}/ssl/certs/ca.pem --server={{master_ip}} --embed-certs=true --kubeconfig=/tmp/kubelet.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 添加kubelet认证用户至users表中，kubelet与apiserver共用同一client证书，因此无需单独签发kubelet客户端证书
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-credentials k8s-client --client-certificate={{install_base}}/ssl/client/client.pem --client-key={{install_base}}/ssl/client/client-key.pem --embed-certs=true  --kubeconfig=/tmp/kubelet.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 创建context集群上下文件，允许kubelet用户访问该集群
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config set-context k8s-context --cluster=k8s-cluster --user=k8s-client --kubeconfig=/tmp/kubelet.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 切换使用当前上下文为k8s-context
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl config use-context k8s-context --kubeconfig=/tmp/kubelet.kubeconfig'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝远程kubelet.kubeconfig到本地部署机器
+  fetch:
+   src: "/tmp/kubelet.kubeconfig"
+   dest: /tmp/kubelet.kubeconfig
+   flat: yes
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 拷贝kubelet必要依赖的docker镜像pause
+  copy: src=pause.tgz dest='/tmp/' owner=root group=root
+
+- name: 导入pause到本地镜像库
+  shell: docker load < /tmp/pause.tgz
+
+- name: 拷贝kube-kubelet
+  copy: src=kubelet dest='{{kubernetes_home}}/kubelet/bin' owner=root group=root mode=755
+
+- name: 拷贝部署机的ca.pem证书文件到所有节点
+  copy: src=/tmp/ca.pem dest='{{kubernetes_home}}/kubelet/certs' owner=root group=root
+
+- name: 拷贝部署机的kubelet证书文件kubelet-key.pem到所有节点
+  copy: src=/tmp/kubelet-key.pem dest='{{kubernetes_home}}/kubelet/certs' owner=root group=root
+
+- name: 拷贝部署机的kubelet证书文件kubelet.pem到所有节点
+  copy: src=/tmp/kubelet.pem dest='{{kubernetes_home}}/kubelet/certs' owner=root group=root
+
+- name: 拷贝部署机的kubelet配置文件kubelet.kubeconfig到所有节点
+  copy: src=/tmp/kubelet.kubeconfig dest='{{kubernetes_home}}/kubelet/conf' owner=root group=root
+
+- name: 拷贝系统自定义kubelet服务文件到所有的节点
+  template:
+   dest: "/lib/systemd/system/"
+   mode: 0755
+   src: kubelet.service
+
+- name: 刷新系统服务列表,使得kubelet服务生效
+  shell: systemctl daemon-reload
+
+- name: 设置kubelet服务开机启动
+  shell: systemctl enable kubelet
+
+- include: kubelet_service.yml
+
+- name: 拷贝系统角色yaml文件,方便执行get node查看节点状态
+  template:
+   dest: "/tmp"
+   mode: 0755
+   src: k8s-node-clusterrole.yaml
+
+- name: 应用k8s-node-clusterrole.yaml 方便执行get node查看节点状态
+  shell: '{{kubernetes_home}}/kubectl/bin/kubectl apply -f /tmp/k8s-node-clusterrole.yaml'
+  when: groups['Cert']|join(',')|search(inventory_hostname)
+
+- name: 暂停一会,防止下面打标签出错
+  shell: 'sleep 5'
+  when: groups['Master']|join(',')|search(inventory_hostname)
+
+- name: 给Master节点打标签
+  shell: 'kubectl  label node {{master_hostname}} node-role.kubernetes.io/master='
+  when: groups['Master']|join(',')|search(inventory_hostname)

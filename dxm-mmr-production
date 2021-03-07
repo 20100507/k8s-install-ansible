@@ -1,0 +1,81 @@
+[all:vars]
+install_base=/opt
+install_group=root
+install_user=root
+
+[init_install]
+#这是你要初始化的机器
+192.168.149.110
+192.168.149.111
+192.168.149.112
+192.168.149.113
+
+[Docker]
+#这是你要安装docker的机器
+192.168.149.110
+192.168.149.111
+192.168.149.112
+192.168.149.113
+
+[Kubernetes:vars]
+#这是你需要修改的!!! 线上建议使用vip后端映射为apiserver真实地址
+master_ip=https://192.168.149.110:6443
+#kubelet数据存储目录
+kubelet_data_dir=/data/kubelet
+#请不要随意修改这两个地址
+cluster_dns=10.68.0.2
+apiserver_cid=10.68.0.1
+#pause镜像名称,在不熟悉脚本情况下不建议修改
+image_name=registry.cn-beijing.aliyuncs.com/zhoujun/pause-amd64:3.1
+#calico镜像
+image_calico_name=registry.cn-hangzhou.aliyuncs.com/imooc/calico-node:v2.6.2
+cluster_cidr=172.20.0.0
+coredns_clusterIP=10.68.0.2
+[Kubernetes]
+#这是你需要修改的!!!! 注意格式 严格的按照如下格式 放入您的主机名和ip
+192.168.149.110 kubelet_hostname=k8s-test-v1-master-1 calico_ip=192.168.149.110 kubeproxy_hostname=k8s-test-v1-master-1
+192.168.149.111 kubelet_hostname=k8s-test-v1-master-2 calico_ip=192.168.149.111 kubeproxy_hostname=k8s-test-v1-master-2
+192.168.149.112 kubelet_hostname=k8s-test-v1-master-3 calico_ip=192.168.149.112 kubeproxy_hostname=k8s-test-v1-master-3
+192.168.149.113 kubelet_hostname=k8s-test-v1-node-1   calico_ip=192.168.149.113 kubeproxy_hostname=k8s-test-v1-node-1
+
+[Kubernetes:children]
+Master
+Node
+Cert
+
+[Master]
+#这是你需要修改的!!!!
+192.168.149.110  etcd_ip=192.168.149.110 master_hostname=k8s-test-v1-master-1
+192.168.149.111  etcd_ip=192.168.149.111 master_hostname=k8s-test-v1-master-2
+192.168.149.112  etcd_ip=192.168.149.112 master_hostname=k8s-test-v1-master-3
+
+[Master:vars]
+
+cluster_ip=10.68.0.0
+apiserver_heap_memory=1024
+
+[Node]
+# 核心为新增节点移除节点考虑
+# Node节点必须为Kubernetes的主机列表的子集,不要和Master主机列表一样
+#192.168.149.109
+
+
+[Cert]
+# 这是你需要修改的!!!! 这个必须为master节点中的一个节点
+# 用户生成证书和认证token配置文件
+192.168.149.110
+
+[Node:children]
+Add_Node
+Remove_Node
+
+[Add_Node]
+#必须为Node主机列表子集
+
+[Remove_Node]
+#必须为Node主机列表子集
+
+[Docker:vars]
+docker_data_directory=/data/docker
+harbor_address=r.duxiaoman-int.com
+docker_bip=172.7.21.1/24

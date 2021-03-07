@@ -1,0 +1,83 @@
+- name: 同步hosts文件
+  copy: src=hosts dest='/etc'
+
+- name: 关闭防火墙
+  command: systemctl stop firewalld
+
+- name: 禁用防火墙
+  command: systemctl disable firewalld 
+  
+- name: yum安装必要依赖-conntrack
+  yum: name='conntrack' state=present
+
+- name: yum安装必要依赖-systemd
+  yum: name='systemd' state=present
+  
+- name: yum安装必要依赖-conntrack-tools
+  yum: name='conntrack-tools' state=present
+  
+- name: yum安装必要依赖-ipset
+  yum: name='ipset' state=present
+
+- name: yum安装必要依赖-ipvsadm
+  yum: name='ipvsadm' state=present
+  
+- name: yum安装必要依赖-iptables
+  yum: name='iptables' state=present
+  
+- name: yum安装必要依赖-net-tools
+  yum: name='net-tools' state=present
+  
+- name: yum安装必要依赖-libseccomp
+  yum: name='libseccomp' state=present
+  
+- name: yum安装必要依赖-iptables-services
+  yum: name='iptables-services' state=present
+
+- name: 启用iptables服务
+  command: systemctl start iptables
+
+- name: 开机自启动iptables服务
+  command: systemctl enable iptables
+
+- name: 修改INPUT策略为ACCEPT
+  command: iptables -P INPUT ACCEPT
+
+- name: 清空iptables规则
+  command: iptables -F
+
+- name: 关闭swap
+  command: swapoff -a
+
+- name: 永久关闭swap  
+  command: sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+- name: 临时关闭selinx
+  command: setenforce 0
+
+- name: 永久关闭selinux
+  command: sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+
+- name: 同步内核修改参数文件
+  copy: src=kubernetes.conf dest='/etc/sysctl.d'
+ 
+- name: 同步开启iptables可执行脚本
+  template:
+    dest: /tmp/
+    mode: 0777
+    src: start-ipvs_model.sh  
+
+- name: 执行iptables脚本
+  command: /tmp/start-ipvs_model.sh
+
+- name: modprobe br_netfilter
+  command: modprobe br_netfilter
+
+- name: 刷新内核参数
+  command: sysctl -p /etc/sysctl.d/kubernetes.conf
+
+- name: 修改系统时区为上海
+  command: timedatectl set-timezone Asia/Shanghai
+
+- name: 将当前的 UTC 时间写入硬件时钟
+  command: timedatectl set-local-rtc 0
